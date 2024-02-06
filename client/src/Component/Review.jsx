@@ -1,21 +1,17 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import socket from "../Socket";
 import { toast } from "react-toastify";
 
-export const headItems = ["S. No.", "Title", "Content", "Date", "Action"];
+const headItems = ["S. No.", "Title", "Content", "Date", "Action"];
 
 const Review = () => {
     const navigate = useNavigate();
-    const [allData, setAllData] = useState([
-    ]);
+    const [allData, setAllData] = useState([]);
     const [searchData, setSearchData] = useState("")
-    // const ws = new WebSocket("wss://" + location.host + "/")
-    const [connected, setConnected] = useState(false)
 
     const getAllData = () => {
-
         const options = {
             method: "GET",
             url: `/api/review/?search=${searchData}`
@@ -23,51 +19,49 @@ const Review = () => {
         axios
             .request(options)
             .then((response) => {
-                console.log(response?.data);
                 if (response.status === 200) {
-
                     setAllData(response?.data?.data);
                 } else {
-
                     return;
                 }
             })
             .catch((error) => {
-
                 console.error("Error:", error);
             });
     };
 
-    //   const handleDelete = (id) => {
-    //     setUpdateId(1);
-    //     setOpenDelete(true);
-    //   };
-
     useEffect(() => {
-
         getAllData();
     }, [searchData]);
 
     useEffect(() => {
-        // setConnected(false)
-        // Connect to the server
         socket.on("connect", () => {
             console.log("Connected to server");
-
         });
 
         // Listen for new reviews
-        socket.on("newReview", (data) => {
-            console.log("Received event from server:", data);
-            console.log(data.title);
-            toast.success(data.title)
-            setConnected(true)
+        socket.on("newReview", () => {
+            console.log("Received event from server..");
+            getAllData();
         });
-        socket.on("disconnect", () => {
-            console.log("disconnected");
-        })
+
+        // Listen for updated reviews
+        socket.on("updatedReview", () => {
+            console.log("Received event from server..");
+            getAllData();
+        });
+
+        // Listen for deleted reviews
+        socket.on("deletedReview", () => {
+            console.log("Received event from server..");
+            getAllData();
+        });
+
         return () => {
-            socket.disconnect();
+            socket.off("connect");
+            socket.off("newReview");
+            socket.off("updateReview");
+            socket.off("deleteReview");
         };
 
     }, []);
@@ -75,13 +69,12 @@ const Review = () => {
     const deleteHandler = async(id) =>{
         try {
             await axios.delete(`/api/review/${id}`).then((res)=>{
-                // console.log(res.data.data);
                 if (res.data.success) {
                     toast.success("Delete Successfully!!!")
                     getAllData()
                 }
             }).catch((e)=>{
-                console.log("apiget",e);
+                console.log("Error:",e);
             })
         } catch (error) {
             console.log(error);

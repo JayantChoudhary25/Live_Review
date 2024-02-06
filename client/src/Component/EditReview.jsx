@@ -15,14 +15,12 @@ const EditReview = () => {
     }
     const formSubmit = async(e) => {
         e.preventDefault()
-        // console.log(reviewData);
         try {
             await axios.put(`/api/review/${id}`,reviewData).then((res)=>{
-                console.log(res.data);
                 if (res.data.success) {
+                    toast.success("Review Updated Successfully!!!")
                     navigate("/")
                 }
-                
             }).catch((e)=>{
                 console.log("apiget",e);
             })
@@ -40,12 +38,11 @@ const EditReview = () => {
     const deleteHandler = async() =>{
         try {
             await axios.delete(`/api/review/${id}`).then((res)=>{
-                // console.log(res.data.data);
                 if (res.data.success) {
-                    toast.success("Delete Successfully!!!")
+                    toast.success("Delete Successfully!!!");
+
                     setTimeout(() => {
                         navigate("/")
-                        
                     }, 500);
                 }
             }).catch((e)=>{
@@ -55,10 +52,10 @@ const EditReview = () => {
             console.log(error);
         }
     }
-    const defaultApi = async() =>{
+
+    const defaultApi = async() => {
         try {
             await axios.get(`/api/review/${id}`).then((res)=>{
-                // console.log(res.data.data);
                 setReviewData(res.data.data)
             }).catch((e)=>{
                 console.log("apiget",e);
@@ -67,7 +64,7 @@ const EditReview = () => {
             console.log(error);
         }
     }
-    // console.log(id);
+
     useEffect(() => {
         defaultApi()
     }, [])
